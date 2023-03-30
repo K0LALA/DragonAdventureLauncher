@@ -1,29 +1,30 @@
 package fr.kolala.launcher.scenes;
 
-import fr.trxyy.alternative.alternative_apiv2.base.*;
-import fr.trxyy.alternative.alternative_apiv2.utils.Mover;
-import javafx.scene.Parent;
+import fr.trxyy.alternative.alternative_api.GameEngine;
+import fr.trxyy.alternative.alternative_api_ui.LauncherPane;
 import javafx.scene.Scene;
-import javafx.stage.Stage;
-import javafx.stage.StageStyle;
+import javafx.scene.shape.Rectangle;
 
-public class SceneManager extends AlternativeBase {
+public class SceneManager {
 
-    private final GameFolder gameFolder = new GameFolder("DragonAdventure");
-    private final GameLinks gameLinks = new GameLinks("http://127.0.0.1/launcher/", "1.16.5-forge-36.2.34.json");
-    private final LauncherPreferences launcherPreferences = new LauncherPreferences("Dragon Adventure Launcher", 1280, 720, Mover.MOVE);
-    private final GameEngine gameEngine = new GameEngine(gameFolder, gameLinks, launcherPreferences);
+    private final GameEngine gameEngine;
+    private Scene scene;
+    private LauncherPanel panel;
 
-    @Override
-    public void start(Stage primaryStage) throws Exception {
-        Scene scene = new Scene(firstPanel());
-        LauncherBase launcher = new LauncherBase(primaryStage, scene, StageStyle.DECORATED, gameEngine);
-        launcher.setIconImage(primaryStage, "assets/favicon.png");
+    public SceneManager(GameEngine engine) {
+        this.gameEngine = engine;
+
+
     }
 
-    private Parent firstPanel() {
-        LauncherPane contentPane = new LauncherPane(gameEngine);
-        new MainPanel(contentPane, gameEngine);
-        return contentPane;
+    public Scene createPane() {
+        LauncherPane contentPane = new LauncherPane(this.gameEngine);
+        scene = new Scene(contentPane);
+        new LauncherPanel(contentPane, this.gameEngine);
+        return scene;
+    }
+
+    private void setPanel(LauncherPanel panel) {
+        this.panel = panel;
     }
 }
