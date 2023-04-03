@@ -3,7 +3,6 @@ package fr.kolala.launcher.scenes;
 import fr.trxyy.alternative.alternative_api.GameEngine;
 import fr.trxyy.alternative.alternative_api_ui.LauncherPane;
 import javafx.scene.Scene;
-import javafx.scene.shape.Rectangle;
 
 public class SceneManager {
 

@@ -12,6 +12,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -20,6 +21,7 @@ import javafx.util.Duration;
 
 import javax.swing.text.html.ImageView;
 import java.lang.management.ManagementFactory;
+import java.util.function.UnaryOperator;
 
 public class LauncherPanel extends IScreen {
 
@@ -55,14 +57,13 @@ public class LauncherPanel extends IScreen {
     public LauncherPanel (Pane root, GameEngine gameEngine) {
         this.root = root;
         this.engine = gameEngine;
-        this.logger = new Logger(engine);
+        this.logger = new Logger(gameEngine);
 
         LauncherImage backgroundImage = new LauncherImage(root, loadImage(engine, "assets/background_blurred.png"));
         backgroundImage.setSize(engine.getWidth(), engine.getHeight());
 
         loginPane();
         playPane();
-
     }
 
     private void loginPanelTransition() {
@@ -134,6 +135,12 @@ public class LauncherPanel extends IScreen {
         this.usernameField.addStyle("-fx-background-radius: 0 0 0 0;");
         this.usernameField.addStyle("-fx-background-color: rgba(25, 25, 25, 0.5);");
         this.usernameField.textProperty().addListener((observable, oldValue, newValue) -> updateUsernameFieldValidity(newValue.length(), validUsername));
+        this.usernameField.setTextFormatter(new TextFormatter<String>(change -> {
+            if(change.getControlNewText().matches("[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_]*"))
+                return change;
+            else
+                return null;
+        }));
 
         LauncherImage notValid = new LauncherImage(root, loadImage(engine, "assets/red_cross.png"));
         notValid.setSize(16, 16);
@@ -296,7 +303,6 @@ public class LauncherPanel extends IScreen {
         object.setPrefSize(width, height);
         object.setMaxSize(width, height);
     }
-
 
     //TODO: faire que de base, le login soit à false et que ça marche quand même
     private void updateUsernameFieldValidity(int length, LauncherLabel validUsername) {
