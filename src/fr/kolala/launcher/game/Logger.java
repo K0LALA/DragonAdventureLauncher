@@ -52,6 +52,5 @@ public class Logger extends IScreen {
 
     public void crackAuthentification(String username) {
         gameAuth = new GameAuth(username, "", AccountType.OFFLINE);
-        System.out.println(gameAuth.getSession().getUsername());
     }
 }

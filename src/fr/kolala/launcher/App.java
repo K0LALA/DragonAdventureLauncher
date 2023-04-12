@@ -3,9 +3,11 @@ package fr.kolala.launcher;
 import fr.kolala.launcher.scenes.SceneManager;
 import fr.trxyy.alternative.alternative_api.*;
 import fr.trxyy.alternative.alternative_api.utils.Mover;
+import fr.trxyy.alternative.alternative_api_ui.LauncherPane;
 import fr.trxyy.alternative.alternative_api_ui.base.AlternativeBase;
 import fr.trxyy.alternative.alternative_api_ui.base.LauncherBase;
 import javafx.scene.Scene;
+import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
@@ -29,7 +31,7 @@ public class App extends AlternativeBase {
     public void start(Stage primaryStage) {
         createContent();
         this.gameEngine.reg(primaryStage);
-        LauncherBase launcherBase = new LauncherBase(primaryStage, scene, StageStyle.DECORATED, this.gameEngine);
+        LauncherBase launcherBase = new LauncherBase(primaryStage, scene, StageStyle.TRANSPARENT, this.gameEngine);
         launcherBase.setIconImage(primaryStage, "assets/favicon.png");
     }
 

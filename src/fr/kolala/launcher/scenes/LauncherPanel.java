@@ -1,6 +1,7 @@
 package fr.kolala.launcher.scenes;
 
 import fr.kolala.launcher.game.Logger;
+import fr.kolala.launcher.game.server.ServerStatus;
 import fr.trxyy.alternative.alternative_api.GameEngine;
 import fr.trxyy.alternative.alternative_api.utils.FontLoader;
 import fr.trxyy.alternative.alternative_api_ui.base.IScreen;
@@ -16,6 +17,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
@@ -31,6 +33,7 @@ public class LauncherPanel extends IScreen {
     private final Pane root;
     private final GameEngine engine;
     private final Logger logger;
+    private final ServerStatus serverStatus;
 
     /* Login Pane */
     private Rectangle loginPane;
@@ -39,6 +42,12 @@ public class LauncherPanel extends IScreen {
     private LauncherTextField usernameField;
     private LauncherLabel validUsername;
     private LauncherButton loginButton;
+
+    /* Server Pane */
+    private Rectangle serverPane;
+    private LauncherLabel serverName;
+    private LauncherButton refreshButton;
+    private LauncherLabel players;
 
     /* Play Pane */
     private Rectangle playPane;
@@ -58,14 +67,22 @@ public class LauncherPanel extends IScreen {
         this.root = root;
         this.engine = gameEngine;
         this.logger = new Logger(gameEngine);
+        this.serverStatus = new ServerStatus("adventuredragon.craft.gg");
 
         LauncherImage backgroundImage = new LauncherImage(root, loadImage(engine, "assets/background_blurred.png"));
         backgroundImage.setSize(engine.getWidth(), engine.getHeight());
 
+        LauncherButton closeButton = new LauncherButton(root);
+        LauncherImage closeImage = new LauncherImage(root, getResourceLocation().loadImage(engine, "assets/close.png"));
+        closeImage.setSize(48, 48);
+        closeButton.setGraphic(closeImage);
+        closeButton.setBackground(null);
+        closeButton.setPosition(engine.getWidth() - 65, 2);
+        closeButton.setSize(48, 48);
+        closeButton.setOnAction(event -> System.exit(0));
+
         loginPane();
         playPane();
-
-        playPanelTransition();
     }
 
     private void loginPanelTransition() {
@@ -78,6 +95,11 @@ public class LauncherPanel extends IScreen {
         else
             translateTransition(validUsername, 350, Orientation.HORIZONTAL, 500);
         fadeEnable(this.loginButton, 300, 350, Orientation.HORIZONTAL, 500);
+
+        fadeDisable(this.serverPane, 300, 350, Orientation.HORIZONTAL, 500);
+        fadeDisable(this.serverName, 300, 350, Orientation.HORIZONTAL, 500);
+        fadeDisable(this.refreshButton, 300, 350, Orientation.HORIZONTAL, 500);
+        fadeDisable(this.players, 300, 350, Orientation.HORIZONTAL, 500);
 
         fadeDisable(this.playPane, 300, 350, Orientation.HORIZONTAL, 500);
         fadeDisable(this.usernameLabel, 300, 350, Orientation.HORIZONTAL, 500);
@@ -94,6 +116,11 @@ public class LauncherPanel extends IScreen {
         fadeDisable(this.usernameField, 300, 350, Orientation.HORIZONTAL, -500);
         fadeDisable(this.validUsername, 300, 350, Orientation.HORIZONTAL, -500);
         fadeDisable(this.loginButton, 300, 350, Orientation.HORIZONTAL, -500);
+
+        fadeEnable(this.serverPane, 300, 350, Orientation.HORIZONTAL, -500);
+        fadeEnable(this.serverName, 300, 350, Orientation.HORIZONTAL, -500);
+        fadeEnable(this.refreshButton, 300, 350, Orientation.HORIZONTAL, -500);
+        fadeEnable(this.players, 300, 350, Orientation.HORIZONTAL, -500);
 
         fadeEnable(this.playPane, 300, 350, Orientation.HORIZONTAL, -500);
         fadeEnable(this.usernameLabel, 300, 350, Orientation.HORIZONTAL, -500);
@@ -192,6 +219,48 @@ public class LauncherPanel extends IScreen {
     }
 
     private void playPane() {
+        /* Server Pane */
+        this.serverPane = new Rectangle(engine.getWidth() / 2d - 138 + 500, engine.getHeight() / 2d - 230, 276, 75);
+        this.serverPane.setFill(Color.rgb(20, 20, 20, 0.35));
+        this.serverPane.setArcWidth(10.0);
+        this.serverPane.setArcHeight(10.0);
+        this.serverPane.setOpacity(0.0);
+        this.serverPane.setDisable(true);
+        root.getChildren().add(serverPane);
+
+        this.serverName = new LauncherLabel(root);
+        this.serverName.setText("Dragon Adventure");
+        this.serverName.setFont(font(18F));
+        this.serverName.setSize(200, 50);
+        this.serverName.setPosition(engine.getWidth() / 2d - 100 + 500, engine.getHeight() / 2d - 235);
+        this.serverName.addStyle("-fx-text-fill: " + whiteColor + ";");
+        this.serverName.setAlignment(Pos.CENTER);
+        this.serverName.setOpacity(0.0);
+        this.serverName.setDisable(true);
+
+        this.refreshButton = new LauncherButton(root);
+        LauncherImage refreshImage = new LauncherImage(root, getResourceLocation().loadImage(engine, "assets/refresh.png"));
+        refreshImage.setSize(24, 24);
+        this.refreshButton.setGraphic(refreshImage);
+        this.refreshButton.setBackground(null);
+        this.refreshButton.setPosition(engine.getWidth() / 2 + 100 + 500, engine.getHeight() / 2 - 195);
+        this.refreshButton.setSize(24, 24);
+        this.refreshButton.setOnAction(event -> updateServerStatus());
+        this.refreshButton.setOpacity(0.0);
+        this.refreshButton.setDisable(true);
+
+        this.players = new LauncherLabel(root);
+        this.players.setFont(font(16F));
+        this.players.setSize(100, (int) players.getHeight());
+        this.players.setPosition(engine.getWidth() / 2 - 50 + 500, engine.getHeight() / 2 - 190);
+        this.players.addStyle("-fx-text-fill: " + whiteColor + ";");
+        this.players.setAlignment(Pos.CENTER);
+        this.players.setOpacity(0.0);
+        this.players.setDisable(true);
+
+        updateServerStatus();
+
+        /* Play Pane */
         this.playPane = new Rectangle(engine.getWidth() / 2d - 138 + 500, engine.getHeight() / 2d - 145, 276, 240);
         this.playPane.setFill(Color.rgb(20, 20, 20, 0.35));
         this.playPane.setArcWidth(10.0);
@@ -279,8 +348,21 @@ public class LauncherPanel extends IScreen {
         this.playButton.setDisable(true);
     }
 
-    private void setPlayerHead (Pane root, String username)
-    {
+    private void updateServerStatus () {
+        serverStatus.update();
+        Circle online = new Circle(5);
+
+        if(serverStatus.isOnline())
+        {
+            online.setFill(Color.rgb(108, 172, 25));
+            this.players.setText(String.valueOf(serverStatus.getOnlinePlayers()) + "/" + String.valueOf(serverStatus.getMaxPlayer()));
+        }
+        else
+            online.setFill(Color.rgb(229, 32, 32));
+        this.serverName.setGraphic(online);
+    }
+
+    private void setPlayerHead (Pane root, String username) {
         this.profileImage = new LauncherImage(root, new Image("https://minotar.net/armor/bust/" + username + "/25.png"));
         this.usernameLabel.setGraphic(profileImage);
     }
@@ -319,7 +401,6 @@ public class LauncherPanel extends IScreen {
         object.setMaxSize(width, height);
     }
 
-    //TODO: faire que de base, le login soit à false et que ça marche quand même
     private void updateUsernameFieldValidity(int length, LauncherLabel validUsername) {
         if(length < 3)
         {
