@@ -3,14 +3,11 @@ package fr.kolala.launcher;
 import fr.kolala.launcher.scenes.SceneManager;
 import fr.trxyy.alternative.alternative_api.*;
 import fr.trxyy.alternative.alternative_api.utils.Mover;
-import fr.trxyy.alternative.alternative_api_ui.LauncherPane;
 import fr.trxyy.alternative.alternative_api_ui.base.AlternativeBase;
 import fr.trxyy.alternative.alternative_api_ui.base.LauncherBase;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
-
-import java.io.IOException;
 
 public class App extends AlternativeBase {
 
@@ -29,7 +26,7 @@ public class App extends AlternativeBase {
     }
 
     @Override
-    public void start(Stage primaryStage) throws Exception {
+    public void start(Stage primaryStage) {
         createContent();
         this.gameEngine.reg(primaryStage);
         LauncherBase launcherBase = new LauncherBase(primaryStage, scene, StageStyle.DECORATED, this.gameEngine);
@@ -52,7 +49,7 @@ public class App extends AlternativeBase {
         return new GameEngine(gameFolder, gameLinks, launcherPreferences, GameStyle.FORGE_1_13_HIGHER);
     }
 
-    private void createContent() throws IOException {
+    private void createContent() {
         scene = sceneManager.createPane();
         this.gameEngine.reg(gameLinks);
     }

@@ -7,6 +7,11 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="AlternativeAPI-2.0" level="project" />
+    <orderEntry type="library" name="gson-2.8.6" level="project" />
+    <orderEntry type="library" name="httpclient-4.5.6" level="project" />
+    <orderEntry type="library" name="httpcore-4.4.10" level="project" />
+    <orderEntry type="library" name="json-simple-1.1.1" level="project" />
+    <orderEntry type="library" name="AlternativeAuth" level="project" />
+    <orderEntry type="library" name="AlternativeAPI" level="project" />
   </component>
 </module>

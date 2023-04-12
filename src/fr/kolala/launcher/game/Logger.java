@@ -5,15 +5,11 @@ import fr.trxyy.alternative.alternative_api_ui.LauncherPane;
 import fr.trxyy.alternative.alternative_api_ui.base.IScreen;
 import fr.trxyy.alternative.alternative_auth.account.AccountType;
 import fr.trxyy.alternative.alternative_auth.base.GameAuth;
-import javafx.application.Platform;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-
-import java.util.UUID;
 
 public class Logger extends IScreen {
 
@@ -43,18 +39,19 @@ public class Logger extends IScreen {
         stage.showAndWait();
     }
 
-    public void microsoftAuthentification() {
+    public String microsoftAuthentification() {
         gameAuth = new GameAuth(AccountType.MICROSOFT);
         showMicrosoftAuth();
         if(gameAuth.isLogged()) {
-
             System.out.println("Connexion réussie");
-        } else {
-            System.out.println("Microsoft authentification failed!");
+            return gameAuth.getSession().getUsername();
         }
+        System.out.println("Connexion echouée");
+        return "";
     }
 
     public void crackAuthentification(String username) {
         gameAuth = new GameAuth(username, "", AccountType.OFFLINE);
+        System.out.println(gameAuth.getSession().getUsername());
     }
 }

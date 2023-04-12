@@ -13,15 +13,14 @@ import javafx.scene.Node;
 import javafx.scene.control.Control;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextFormatter;
+import javafx.scene.image.Image;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
-import javax.swing.text.html.ImageView;
 import java.lang.management.ManagementFactory;
-import java.util.function.UnaryOperator;
 
 public class LauncherPanel extends IScreen {
 
@@ -44,7 +43,7 @@ public class LauncherPanel extends IScreen {
     /* Play Pane */
     private Rectangle playPane;
     private LauncherLabel backButton;
-    private ImageView profileImage;
+    private LauncherImage profileImage;
     private LauncherLabel usernameLabel;
     private Slider memorySlider;
     private LauncherLabel memoryUsage;
@@ -53,6 +52,7 @@ public class LauncherPanel extends IScreen {
     private LauncherLabel updateFileLabel;
 
     private boolean isLoginValid = true;
+    private String username = "";
 
     public LauncherPanel (Pane root, GameEngine gameEngine) {
         this.root = root;
@@ -64,6 +64,8 @@ public class LauncherPanel extends IScreen {
 
         loginPane();
         playPane();
+
+        playPanelTransition();
     }
 
     private void loginPanelTransition() {
@@ -117,7 +119,11 @@ public class LauncherPanel extends IScreen {
         this.microsoftLogin.addStyle("-fx-background-color: rgba(25, 25, 25, 0.5);");
         this.microsoftLogin.addStyle("-fx-border-width: 2px;");
         this.microsoftLogin.addStyle("-fx-border-color: " + grayColor + ";");
-        this.microsoftLogin.setOnAction(event -> logger.microsoftAuthentification());
+        this.microsoftLogin.setOnAction(event -> {
+            username = logger.microsoftAuthentification();
+            usernameLabel.setText(" — " + username);
+            setPlayerHead(root, username);
+        });
 
         this.crackLabel = new LauncherLabel(root);
         this.crackLabel.setText("━━━━━━━ Crack ━━━━━━━");
@@ -177,6 +183,9 @@ public class LauncherPanel extends IScreen {
             if(isLoginValid && usernameField.getText().length() != 0)
             {
                 logger.crackAuthentification(usernameField.getText());
+                username = usernameField.getText();
+                usernameLabel.setText(" — " + username);
+                setPlayerHead(root, "MHF_Steve");
                 playPanelTransition();
             }
         });
@@ -268,6 +277,12 @@ public class LauncherPanel extends IScreen {
         this.playButton.addStyle("-fx-text-fill: " + grayColor + ";");
         this.playButton.setOpacity(0.0);
         this.playButton.setDisable(true);
+    }
+
+    private void setPlayerHead (Pane root, String username)
+    {
+        this.profileImage = new LauncherImage(root, new Image("https://minotar.net/armor/bust/" + username + "/25.png"));
+        this.usernameLabel.setGraphic(profileImage);
     }
 
     private void translateTransition(Node object, int time, Orientation orientation, double movement) {
