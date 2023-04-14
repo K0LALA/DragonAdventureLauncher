@@ -1,11 +1,17 @@
 package fr.kolala.launcher.scenes;
 
 import fr.kolala.launcher.game.Logger;
+import fr.kolala.launcher.game.Updater;
 import fr.kolala.launcher.game.server.ServerStatus;
 import fr.trxyy.alternative.alternative_api.GameEngine;
+import fr.trxyy.alternative.alternative_api.GameLinks;
+import fr.trxyy.alternative.alternative_api.GameStyle;
 import fr.trxyy.alternative.alternative_api.utils.FontLoader;
+import fr.trxyy.alternative.alternative_api.utils.config.EnumConfig;
+import fr.trxyy.alternative.alternative_api.utils.config.LauncherConfig;
 import fr.trxyy.alternative.alternative_api_ui.base.IScreen;
 import fr.trxyy.alternative.alternative_api_ui.components.*;
+import fr.trxyy.alternative.alternative_auth.base.GameAuth;
 import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.geometry.Orientation;
@@ -22,7 +28,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.util.Duration;
 
+import java.awt.*;
 import java.lang.management.ManagementFactory;
+import java.net.URL;
+import java.util.HashMap;
 
 public class LauncherPanel extends IScreen {
 
@@ -32,8 +41,11 @@ public class LauncherPanel extends IScreen {
 
     private final Pane root;
     private final GameEngine engine;
+    private GameAuth gameAuth;
+    private final LauncherConfig config;
     private final Logger logger;
     private final ServerStatus serverStatus;
+    private final Updater updater;
 
     /* Login Pane */
     private Rectangle loginPane;
@@ -52,7 +64,6 @@ public class LauncherPanel extends IScreen {
     /* Play Pane */
     private Rectangle playPane;
     private LauncherLabel backButton;
-    private LauncherImage profileImage;
     private LauncherLabel usernameLabel;
     private Slider memorySlider;
     private LauncherLabel memoryUsage;
@@ -60,14 +71,24 @@ public class LauncherPanel extends IScreen {
     private LauncherProgressBar progressBar;
     private LauncherLabel updateFileLabel;
 
+    /* Side Pane */
+    private Rectangle sidePane;
+    private LauncherButton mapButton;
+    private LauncherButton modsButton;
+    private LauncherButton discordButton;
+
     private boolean isLoginValid = true;
     private String username = "";
 
     public LauncherPanel (Pane root, GameEngine gameEngine) {
         this.root = root;
         this.engine = gameEngine;
+        this.config = new LauncherConfig(engine);
+        this.config.loadConfiguration();
         this.logger = new Logger(gameEngine);
         this.serverStatus = new ServerStatus("adventuredragon.craft.gg");
+        initConfig(root);
+        this.updater = new Updater(engine, config);
 
         LauncherImage backgroundImage = new LauncherImage(root, loadImage(engine, "assets/background_blurred.png"));
         backgroundImage.setSize(engine.getWidth(), engine.getHeight());
@@ -81,8 +102,47 @@ public class LauncherPanel extends IScreen {
         closeButton.setSize(48, 48);
         closeButton.setOnAction(event -> System.exit(0));
 
+        LauncherLabel title = new LauncherLabel(root);
+        title.setText("Dragon Adventure – L'ère de la magie");
+        title.setFont(font(24F));
+        title.setSize(500, (int) title.getHeight());
+        title.setPosition(engine.getWidth() / 2d - 250, 20);
+        title.addStyle("-fx-text-fill: " + whiteColor + ";");
+        title.setAlignment(Pos.CENTER);
+
         loginPane();
         playPane();
+    }
+
+    private void initConfig (Pane root) {
+        boolean rememberMe = (boolean) config.getValue(EnumConfig.REMEMBER_ME);
+        boolean useMicrosoft = (boolean) config.getValue(EnumConfig.USE_MICROSOFT);
+        String username_ = (String) config.getValue(EnumConfig.USERNAME);
+
+        if (rememberMe)
+        {
+            if (useMicrosoft)
+            {
+                //Authentification Microsoft
+                gameAuth = logger.microsoftAuthentification();
+                username = gameAuth.getSession().getUsername();
+                usernameLabel.setText(" — " + username);
+                setPlayerHead(root, username);
+            }
+            else
+            {
+                this.usernameField.setText(username_);
+                username = username_;
+                gameAuth = logger.crackAuthentification(username_);
+                usernameLabel.setText(" — " + username_);
+                setPlayerHead(root, "MHF_Steve");
+                playPanelTransition();
+            }
+        }
+
+        GameLinks links = new GameLinks("http://127.0.0.1/launcher/", "1.16.5-forge-36.2.34.json");
+        engine.reg(links);
+        engine.setGameStyle(GameStyle.FORGE_1_13_HIGHER);
     }
 
     private void loginPanelTransition() {
@@ -107,6 +167,11 @@ public class LauncherPanel extends IScreen {
         fadeDisable(this.playButton, 300, 350, Orientation.HORIZONTAL, 500);
         fadeDisable(this.memorySlider, 300, 350, Orientation.HORIZONTAL, 500);
         fadeDisable(this.memoryUsage, 300, 350, Orientation.HORIZONTAL, 500);
+
+        fadeDisable(this.sidePane, 300, 350, Orientation.HORIZONTAL, -70);
+        fadeDisable(this.mapButton, 300, 350, Orientation.HORIZONTAL, -70);
+        fadeDisable(this.modsButton, 300, 350, Orientation.HORIZONTAL, -70);
+        fadeDisable(this.discordButton, 300, 350, Orientation.HORIZONTAL, -70);
     }
 
     private void playPanelTransition() {
@@ -128,6 +193,11 @@ public class LauncherPanel extends IScreen {
         fadeEnable(this.playButton, 300, 350, Orientation.HORIZONTAL, -500);
         fadeEnable(this.memorySlider, 300, 350, Orientation.HORIZONTAL, -500);
         fadeEnable(this.memoryUsage, 300, 350, Orientation.HORIZONTAL, -500);
+
+        fadeEnable(this.sidePane, 300, 350, Orientation.HORIZONTAL, 70);
+        fadeEnable(this.mapButton, 300, 350, Orientation.HORIZONTAL, 70);
+        fadeEnable(this.modsButton, 300, 350, Orientation.HORIZONTAL, 70);
+        fadeEnable(this.discordButton, 300, 350, Orientation.HORIZONTAL, 70);
     }
 
     private void loginPane() {
@@ -147,7 +217,10 @@ public class LauncherPanel extends IScreen {
         this.microsoftLogin.addStyle("-fx-border-width: 2px;");
         this.microsoftLogin.addStyle("-fx-border-color: " + grayColor + ";");
         this.microsoftLogin.setOnAction(event -> {
-            username = logger.microsoftAuthentification();
+            gameAuth = logger.microsoftAuthentification();
+            username = gameAuth.getSession().getUsername();
+            config.updateValue("useMicrosoft", true);
+            config.updateValue("username", username);
             usernameLabel.setText(" — " + username);
             setPlayerHead(root, username);
         });
@@ -186,6 +259,8 @@ public class LauncherPanel extends IScreen {
         this.validUsername.addStyle("-fx-font-weight: bold;");
         this.validUsername.setOpacity(0.0);
 
+        //TODO: bouton remember me
+
         this.loginButton = new LauncherButton(root);
         this.loginButton.setText("Se Connecter");
         this.loginButton.setFont(font(18F));
@@ -209,8 +284,10 @@ public class LauncherPanel extends IScreen {
             loginButton.setFont(font(18F));
             if(isLoginValid && usernameField.getText().length() != 0)
             {
-                logger.crackAuthentification(usernameField.getText());
-                username = usernameField.getText();
+                gameAuth = logger.crackAuthentification(usernameField.getText());
+                username = gameAuth.getSession().getUsername();
+                config.updateValue("useMicrosoft", false);
+                config.updateValue("username", username);
                 usernameLabel.setText(" — " + username);
                 setPlayerHead(root, "MHF_Steve");
                 playPanelTransition();
@@ -257,7 +334,6 @@ public class LauncherPanel extends IScreen {
         this.players.setAlignment(Pos.CENTER);
         this.players.setOpacity(0.0);
         this.players.setDisable(true);
-
         updateServerStatus();
 
         /* Play Pane */
@@ -278,20 +354,6 @@ public class LauncherPanel extends IScreen {
         this.usernameLabel.setAlignment(Pos.CENTER);
         this.usernameLabel.setOpacity(0);
         this.usernameLabel.setDisable(true);
-
-        this.backButton = new LauncherLabel(root);
-        this.backButton.setText("← Retour");
-        this.backButton.setPosition(15 + 500, 10);
-        this.backButton.setFont(font(14F));
-        this.backButton.addStyle("-fx-border-color: " + whiteColor + ", transparent;");
-        this.backButton.addStyle("-fx-border-width: 0 0 1 0, 0 0 1 0;");
-        this.backButton.addStyle("-fx-border-insets: 0 0 1 0, 0 0 1 0;");
-        this.backButton.addStyle("-fx-text-fill: " + whiteColor + ";");
-        this.backButton.setOpacity(0);
-        this.backButton.setDisable(true);
-        this.backButton.setHover(event -> backButton.addStyle("-fx-cursor: hand;"));
-        this.backButton.setUnHover(event -> backButton.addStyle("-fx-cursor: default;"));
-        this.backButton.setOnMousePressed(event -> loginPanelTransition());
 
         this.memorySlider = new Slider(2000, (double) ((com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize() / 1000000 - 1000, 4000);
         this.setSize(memorySlider, 150, 30);
@@ -344,8 +406,92 @@ public class LauncherPanel extends IScreen {
         this.playButton.addStyle("-fx-border-width: 2px;");
         this.playButton.addStyle("-fx-border-color: " + grayColor + ";");
         this.playButton.addStyle("-fx-text-fill: " + grayColor + ";");
+        this.playButton.setOnAction(event -> {
+            playButton.setFont(font(20F));
+            fade(playButton, 150, 0.3);
+            playButton.setDisable(true);
+            fade(backButton, 150, 0);
+            backButton.setDisable(true);
+            fade(memorySlider, 150, 0.3);
+            memorySlider.setDisable(true);
+
+            HashMap<String, String> configMap = new HashMap<String, String>();
+            configMap.put("allocatedram", String.valueOf(memorySlider.getValue()));
+            configMap.put("usediscord", "" + true);
+            config.updateValues(configMap);
+
+            updater.updateGame(gameAuth, progressBar, updateFileLabel);
+        });
         this.playButton.setOpacity(0.0);
         this.playButton.setDisable(true);
+
+        /* Side Pane */
+        this.sidePane = new Rectangle(-70, 0, 70, engine.getHeight());
+        this.sidePane.setFill(Color.rgb(20, 20, 20, 0.35));
+        this.sidePane.setOpacity(0.0);
+        this.sidePane.setDisable(true);
+        root.getChildren().add(sidePane);
+
+        this.mapButton = new LauncherButton(root);
+        LauncherImage mapImage = new LauncherImage(root, getResourceLocation().loadImage(engine, "assets/map.png"));
+        mapImage.setSize(50, 50);
+        this.mapButton.setGraphic(mapImage);
+        this.mapButton.setPosition(10 - 80, engine.getHeight() / 2 - 95);
+        this.mapButton.setSize(50, 50);
+        this.mapButton.setBackground(null);
+        this.mapButton.setOnAction(event -> {
+            try {
+                Desktop.getDesktop().browse(new URL("http://adventuredragon.craft.gg:40009/").toURI());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        this.mapButton.setOpacity(0.0);
+        this.mapButton.setDisable(true);
+
+        //TODO: afficher la page d'activation des mods clients optionnels
+        this.modsButton = new LauncherButton(root);
+        LauncherImage modsImage = new LauncherImage(root, getResourceLocation().loadImage(engine, "assets/mods.png"));
+        modsImage.setSize(50, 50);
+        this.modsButton.setGraphic(modsImage);
+        this.modsButton.setPosition(10 - 80, engine.getHeight() / 2 - 25);
+        this.modsButton.setSize(50, 50);
+        this.modsButton.setBackground(null);
+        this.modsButton.setOpacity(0.0);
+        this.modsButton.setDisable(true);
+
+        this.discordButton = new LauncherButton(root);
+        LauncherImage discordImage = new LauncherImage(root, getResourceLocation().loadImage(engine, "assets/discord.png"));
+        discordImage.setSize(50, 50);
+        this.discordButton.setGraphic(discordImage);
+        this.discordButton.setPosition(10 - 80, engine.getHeight() / 2 + 45);
+        this.discordButton.setSize(50, 50);
+        this.discordButton.setBackground(null);
+        this.discordButton.setOnAction(event -> {
+            try {
+                Desktop.getDesktop().browse(new URL("https://discord.gg/jSZcjvBcnK").toURI());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+        this.discordButton.setOpacity(0.0);
+        this.discordButton.setDisable(true);
+
+        /* Back Button */
+        // Put in last to be on top of everything
+        this.backButton = new LauncherLabel(root);
+        this.backButton.setText("← Retour");
+        this.backButton.setPosition(8 + 500, 3);
+        this.backButton.setFont(font(14F));
+        this.backButton.addStyle("-fx-border-color: " + whiteColor + ", transparent;");
+        this.backButton.addStyle("-fx-border-width: 0 0 1 0, 0 0 1 0;");
+        this.backButton.addStyle("-fx-border-insets: 0 0 1 0, 0 0 1 0;");
+        this.backButton.addStyle("-fx-text-fill: " + whiteColor + ";");
+        this.backButton.setOpacity(0);
+        this.backButton.setDisable(true);
+        this.backButton.setHover(event -> backButton.addStyle("-fx-cursor: hand;"));
+        this.backButton.setUnHover(event -> backButton.addStyle("-fx-cursor: default;"));
+        this.backButton.setOnMousePressed(event -> loginPanelTransition());
     }
 
     private void updateServerStatus () {
@@ -363,7 +509,7 @@ public class LauncherPanel extends IScreen {
     }
 
     private void setPlayerHead (Pane root, String username) {
-        this.profileImage = new LauncherImage(root, new Image("https://minotar.net/armor/bust/" + username + "/25.png"));
+        LauncherImage profileImage = new LauncherImage(root, new Image("https://minotar.net/armor/bust/" + username + "/25.png"));
         this.usernameLabel.setGraphic(profileImage);
     }
 

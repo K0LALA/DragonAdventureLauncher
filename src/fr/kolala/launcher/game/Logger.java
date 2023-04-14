@@ -39,18 +39,18 @@ public class Logger extends IScreen {
         stage.showAndWait();
     }
 
-    public String microsoftAuthentification() {
+    public GameAuth microsoftAuthentification() {
         gameAuth = new GameAuth(AccountType.MICROSOFT);
         showMicrosoftAuth();
-        if(gameAuth.isLogged()) {
+        if(gameAuth.isLogged())
             System.out.println("Connexion réussie");
-            return gameAuth.getSession().getUsername();
-        }
-        System.out.println("Connexion echouée");
-        return "";
+        else
+            System.out.println("Connexion echouée");
+        return gameAuth;
     }
 
-    public void crackAuthentification(String username) {
+    public GameAuth crackAuthentification(String username) {
         gameAuth = new GameAuth(username, "", AccountType.OFFLINE);
+        return gameAuth;
     }
 }

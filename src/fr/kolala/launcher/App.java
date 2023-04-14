@@ -3,17 +3,17 @@ package fr.kolala.launcher;
 import fr.kolala.launcher.scenes.SceneManager;
 import fr.trxyy.alternative.alternative_api.*;
 import fr.trxyy.alternative.alternative_api.utils.Mover;
-import fr.trxyy.alternative.alternative_api_ui.LauncherPane;
 import fr.trxyy.alternative.alternative_api_ui.base.AlternativeBase;
 import fr.trxyy.alternative.alternative_api_ui.base.LauncherBase;
 import javafx.scene.Scene;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 public class App extends AlternativeBase {
 
     //TODO: check if there's an update on the github
+    //TODO: Faire la connexnio automatique au serveur
+    //TODO: intégrer Discord Rich Presence
 
     private final GameFolder gameFolder = createGameFolder();
     private final GameLinks gameLinks = createGameLinks();
@@ -40,7 +40,7 @@ public class App extends AlternativeBase {
     }
 
     private GameLinks createGameLinks() {
-        return new GameLinks("http://example-url.com/forge/", "1.16.5-forge-36.2.39.json");
+        return new GameLinks("http://127.0.0.1/launcher/", "1.16.5-forge-36.2.34.json");
     }
 
     private LauncherPreferences createLauncherPreferences() {
