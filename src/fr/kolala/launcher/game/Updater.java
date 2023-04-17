@@ -33,7 +33,7 @@ public class Updater {
     }
 
     public void updateGame (GameAuth auth, LauncherProgressBar progressBar, LauncherLabel updateFileLabel) {
-        engine.getGameLinks().JSON_URL = "http://127.0.0.1/launcher/1.16.5-forge-36.2.34.json";
+        engine.getGameLinks().JSON_URL = "http://127.0.0.1/launcher/1.16.5.json";
         gameUpdater.reg(engine);
         gameUpdater.reg(auth.getSession());
 

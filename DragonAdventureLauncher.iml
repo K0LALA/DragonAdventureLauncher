@@ -13,5 +13,7 @@
     <orderEntry type="library" name="json-simple-1.1.1" level="project" />
     <orderEntry type="library" name="AlternativeAuth" level="project" />
     <orderEntry type="library" name="AlternativeAPI" level="project" />
+    <orderEntry type="library" name="commons-io-2.8.0" level="project" />
+    <orderEntry type="library" name="commons-lang3-3.11" level="project" />
   </component>
 </module>

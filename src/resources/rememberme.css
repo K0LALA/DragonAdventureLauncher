@@ -1,0 +1,14 @@
+.rememberme .box {
+    -fx-background-color: transparent;
+    -fx-border-color: #D3D3D3;
+    -fx-border-radius: 3px;
+    -fx-border-width: 1px;
+}
+
+.rememberme:selected .mark {
+    -fx-background-color: #D3D3D3;
+}
+
+.rememberme:selected .box {
+    -fx-background-color: #6CAC19;
+}
